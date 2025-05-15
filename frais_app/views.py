@@ -226,6 +226,9 @@ class MissionListView(View):
         message = f"Une nouvelle mission a été créée par {request.user.username}.\n\nDétails : {mission.mission_details}"
         recipient_list = ['mihajarazafimahazoson@gmail.com']  # Remplacez par l'adresse e-mail souhaitée a qui envoée le mail , normalement DG
         send_email_async(subject, message, 'mihaja356@gmail.com', recipient_list)
+        
+        # Ajouter un message de succès
+        messages.success(request, "La mission a été créée avec succès!")
 
         
         return redirect('missions')
