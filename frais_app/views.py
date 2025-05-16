@@ -135,7 +135,7 @@ class PaginationUtils:
 #liste des missions
 class MissionListView(View):
     def get(self, request, *args, **kwargs):
-        all_missions = Mission.objects.exclude(status='VALIDATED').order_by('-id')
+        all_missions = Mission.objects.exclude(status__in=['VALIDATED', 'CLOSED']).order_by('-id')
         search_query = request.GET.get('search', '')
         if search_query:
             all_missions = MissionSearchUtils.filter_missions(all_missions, search_query)
@@ -241,27 +241,45 @@ class HistoryView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Récupération des missions validées pour l'affichage du tableau
-        validated_missions = Mission.objects.filter(status='VALIDATED').order_by('-id')
+        # Récupération des missions validées ET clôturées pour l'affichage du tableau
+        history_missions = Mission.objects.filter(
+            status__in=['VALIDATED', 'CLOSED']
+        ).order_by('-id')
         
         # Recherche
         search_query = self.request.GET.get('search', '')
         if search_query:
-            validated_missions = MissionSearchUtils.filter_missions(validated_missions, search_query)
+            history_missions = MissionSearchUtils.filter_missions(history_missions, search_query)
         
         # Utilisation de PaginationUtils
-        missions = PaginationUtils.paginate_queryset(validated_missions, self.request)
+        missions = PaginationUtils.paginate_queryset(history_missions, self.request)
         
         # Ajout des compteurs pour account.html
         context['new_missions'] = Mission.objects.filter(status='NEW').count()
         context['validated_missions'] = Mission.objects.filter(status='VALIDATED').count()
         context['refused_missions'] = Mission.objects.filter(status='REFUSED').count()
+        context['closed_missions'] = Mission.objects.filter(status='CLOSED').count()
         context['total_missions'] = Mission.objects.all().count()
         
         context['missions'] = missions
         context['active_tab'] = 'history'
         
         return context
+    
+    def post(self, request, *args, **kwargs):
+        """Méthode pour gérer la clôture de mission directement depuis la vue History."""
+        mission_id = request.POST.get('mission_id')
+        
+        if mission_id:
+            try:
+                mission = Mission.objects.get(id=mission_id)
+                mission.status = 'CLOSED'
+                mission.save()
+                messages.success(request, f'La mission #{mission.id} a été clôturée avec succès.')
+            except Mission.DoesNotExist:
+                messages.error(request, f'Mission #{mission_id} introuvable.')
+        
+        return redirect('history')
     
     
 # Inscription

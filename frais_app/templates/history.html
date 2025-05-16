@@ -91,7 +91,14 @@
                         {% else %}
                             <td><span class="badge badge-not-billed">Non facturé</span></td>
                         {% endif %}
-                        <td><span class="badge badge-closed">En attente de cloturation</span></td>
+                        <td>
+                        {% if mission.status == 'CLOSED' %}
+                          <span class="badge badge-closed">Clôturée</span>
+                        {% else %}
+                          <span class="badge badge-closed">En attente de clôture</span>
+                        {% endif %}
+                      </td>
+                        
 
                         <!-- icon de détails -->
                         <td class="action-icons">
@@ -106,7 +113,14 @@
                               data-bs-target="#uploadFileModal{{ mission.id }}"
                               title="Ajouter un fichier">
                           </i>
+                          <!--icon de cloturation de mission-->
+                          <i class="fas fa-clipboard-check text-success"
+                            data-bs-toggle="modal"
+                            data-bs-target="#closeMissionModal{{ mission.id }}"
+                            title="Clôturer la mission">
+                          </i>
                         </td>
+                  
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -168,6 +182,11 @@
     {% include 'detail_modal.html' with mission=mission %}
     <!-- Modal pour envoyer un fichier -->
     {% include 'uploadFileModal.html' with mission=mission %}
+    <!-- Modal pour clôturer la mission -->
+    {% include 'cloturation_modal.html' with mission=mission %}
+
+   
+    
 {% endfor %}
 
 {% block extra_scripts %}

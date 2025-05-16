@@ -82,9 +82,10 @@ class Mission(models.Model):
         ('NEW', 'New'),
         ('REFUSED', 'Refused'),
         ('VALIDATED', 'Validated'),
+        ('CLOSED', 'Closed'),
     ]
     status = models.CharField(
-        max_length=10,
+        max_length=30,
         choices=STATUS_CHOICES,
         default='NEW',
         verbose_name='Status',
@@ -120,17 +121,21 @@ class Mission(models.Model):
         verbose_name='Date de refus',
         help_text='Date et heure de refus de la mission'
     )
-    
-    
+    closed_at = models.DateTimeField(
+    null=True,
+    blank=True,
+    verbose_name='Date de clôture',
+    help_text='Date et heure de clôture de la mission'
+    )
+        
     
     
     # Méthode pour mettre à jour automatiquement les dates de validation/refus
     def save(self, *args, **kwargs):
-        # Si c'est un nouvel objet (pas encore en base)
+    # Si c'est un nouvel objet (pas encore en base)
         if not self.id:
             super().save(*args, **kwargs)
             return
-            
         # Récupérer l'ancien état pour comparaison
         try:
             old_mission = Mission.objects.get(id=self.id)
@@ -141,10 +146,12 @@ class Mission(models.Model):
         # Si le statut a changé vers VALIDATED, enregistrer la date
         if self.status == 'VALIDATED' and old_status != 'VALIDATED':
             self.validated_at = datetime.datetime.now()
-        
         # Si le statut a changé vers REFUSED, enregistrer la date
         if self.status == 'REFUSED' and old_status != 'REFUSED':
             self.refused_at = datetime.datetime.now()
+        # Si le statut a changé vers CLOSED, enregistrer la date
+        if self.status == 'CLOSED' and old_status != 'CLOSED':
+            self.closed_at = datetime.datetime.now()
             
         super().save(*args, **kwargs)
         
