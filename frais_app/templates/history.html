@@ -114,11 +114,14 @@
                               title="Ajouter un fichier">
                           </i>
                           <!--icon de cloturation de mission-->
-                          <i class="fas fa-clipboard-check text-success"
-                            data-bs-toggle="modal"
-                            data-bs-target="#closeMissionModal{{ mission.id }}"
-                            title="Clôturer la mission">
-                          </i>
+                          {% if user.is_authenticated and perms.fdm_app.can_close_mission %}
+                            <i class="fas fa-clipboard-check text-success"
+                              data-bs-toggle="modal"
+                              data-bs-target="#closeMissionModal{{ mission.id }}"
+                              title="Clôturer la mission">
+                            </i>
+                            {% endif %}
+                          
                         </td>
                   
                     </tr>
