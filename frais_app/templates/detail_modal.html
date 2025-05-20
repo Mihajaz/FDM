@@ -33,9 +33,11 @@
             <p>{% if mission.status == "NEW" %}
               <span class="badge badge-new" style="background-color:#4688A3">nouveau</span>
             {% elif mission.status == "REFUSED" %}
-              <span class="badge badge-refused" style="background-color: #EF5350;">refusée</span>
+              <span class="badge badge-refused" style="background-color: #EF5350;">refusée </span>
             {% elif mission.status == "VALIDATED" %}
-              <span class="badge badge-validated" style="background-color: #4CAF50;">validée</span>
+              <span class="badge badge-validated" style="background-color: #4CAF50;">validée </span>
+            {% elif mission.status == "CLOSED" %}
+              <span class="badge badge-closed" style="background-color: #6c757d;">clôturée</span>  
             {% endif %}</p>
             
             <b><font size="4" color="#4558c9"> Facturation </font></b>
@@ -172,13 +174,13 @@
           </div>
           
           <!-- Deuxième étape - Validation -->
-<div class="timeline-step">
-  <div class="timeline-content">
-    <div class="timeline-icon">
-      <span class="circle-icon"
-      style="background-color: {% if mission.status == 'VALIDATED' %}#28a745{% elif mission.status == 'REFUSED' %}#dc3545{% elif mission.status == 'NEW' %}#4688A3{% else %}#0D6EFD{% endif %};">
-      {% if mission.status == 'REFUSED' %}✗{% elif mission.status == 'VALIDATED' %}✓{% else %}?{% endif %}
-      </span>
+    <div class="timeline-step">
+      <div class="timeline-content">
+        <div class="timeline-icon">
+          <span class="circle-icon"
+          style="background-color: {% if mission.status == 'VALIDATED' %}#28a745{% elif mission.status == 'REFUSED' %}#dc3545{% elif mission.status == 'NEW' %}#4688A3{% elif mission.status == 'CLOSED' %}#6c757d{% else %}#0D6EFD{% endif %};">
+          {% if mission.status == 'REFUSED' %}✗{% elif mission.status == 'VALIDATED' %}✓{% elif mission.status == 'CLOSED' %}✓{% else %}?{% endif %}
+          </span>
     </div>
     <div class="timeline-text">
       <div>
@@ -188,13 +190,15 @@
             {{ mission.validated_at|date:"d/m/Y H:i" }}
           {% elif mission.status == 'REFUSED' %}
             {{ mission.refused_at|date:"d/m/Y H:i" }}
+          {% elif mission.status == 'CLOSED' %}
+            {{ mission.closed_at|date:"d/m/Y H:i" }}
           {% else %}
             <!-- Vous pouvez laisser vide ou mettre un message d'attente -->
             En attente
           {% endif %}
         </span>
         <p class="mb-0">
-          {% if mission.status == 'REFUSED' %}Refusé{% elif mission.status == 'VALIDATED' %}Validé{% elif mission.status == 'NEW' %}En attente de validation par le DG{% else %}Statut inconnu{% endif %}
+          {% if mission.status == 'REFUSED' %}Refusé par le Directeur{% elif mission.status == 'VALIDATED' %}Validé par le Directeur{% elif mission.status == 'CLOSED' %}Clôturé{% elif mission.status == 'NEW' %}En attente de validation par le DG{% else %}Statut inconnu{% endif %}
         </p>
       </div>
       {% if mission.status == 'REFUSED' %}
@@ -207,8 +211,8 @@
   </div>
    <div class="timeline-line"></div>
     </div> 
-          
-          <!-- Troisième étape - Requiert -->
+         
+          <!-- Troisième étape - Requiert 
           <div class="timeline-step">
             <div class="timeline-content">
               <div class="timeline-icon">
@@ -223,8 +227,9 @@
             </div>
             <div class="timeline-line"></div>
           </div>
-          
-          <!-- Étape finale - Facture -->
+           -->
+
+          <!-- Étape finale - Facture 
           <div class="timeline-step">
             <div class="timeline-content">
               <div class="timeline-icon">
@@ -238,6 +243,8 @@
               </div>
             </div>
           </div>
+          -->
+
         </div>
       </div>
       

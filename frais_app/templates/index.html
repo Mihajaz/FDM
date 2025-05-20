@@ -102,7 +102,7 @@
                 <!-- Icon de valider, mise à jour, details et refuser -->
                 <td class="action-icons">
                   <!-- Icone pour valider la mission -->
-                  {% if user.is_authenticated and perms.fdm_app.can_validate_mission %}
+                  {% if user.is_authenticated and perms.frais_app.can_validate_mission %}
                   <i class="fas fa-check-circle validate"
                     data-bs-toggle="modal"
                     data-bs-target="#validateModal"
@@ -122,7 +122,7 @@
                   title="Détails">
                   </i>
 
-                  {% if user.is_authenticated and not perms.fdm_app.can_validate_mission %}
+                  {% if user.is_authenticated and perms.frais_app.can_edit_mission %}
                   <!-- Bouton pour modifier la mission -->
                   <i class="fas fa-edit edit" 
                      data-bs-toggle="modal" 
@@ -209,7 +209,7 @@
 
   <!--  notifications  popup -->
 
-  <!-- Ajoutez ce lien pour Font Awesome dans la section head de votre page -->
+
 
 
 <!-- Ajoutez ce bloc où vous voulez que les notifications apparaissent -->

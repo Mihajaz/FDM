@@ -166,7 +166,9 @@ class Mission(models.Model):
         permissions = [
             ("can_validate_mission","Peut valider une mission"),
             ("can_refuse_mission","Peut refuser une mission"),
+            ("can_edit_mission","Peut modifier une mission"),
             ("can_close_mission","Peut cloturer une mission"),
+            ("can_upload_file","Peut uploader un fichier"),
 
             ]
         

@@ -250,7 +250,7 @@ class HistoryView(TemplateView):
         search_query = self.request.GET.get('search', '')
         if search_query:
             history_missions = MissionSearchUtils.filter_missions(history_missions, search_query)
-        
+            
         # Utilisation de PaginationUtils
         missions = PaginationUtils.paginate_queryset(history_missions, self.request)
         
@@ -260,7 +260,6 @@ class HistoryView(TemplateView):
         context['refused_missions'] = Mission.objects.filter(status='REFUSED').count()
         context['closed_missions'] = Mission.objects.filter(status='CLOSED').count()
         context['total_missions'] = Mission.objects.all().count()
-        
         context['missions'] = missions
         context['active_tab'] = 'history'
         
@@ -270,14 +269,53 @@ class HistoryView(TemplateView):
         """Méthode pour gérer la clôture de mission directement depuis la vue History."""
         mission_id = request.POST.get('mission_id')
         
+        # Détermine l'action demandée
+        action = request.POST.get('action', 'close')  # Par défaut, c'est une clôture
+        
         if mission_id:
             try:
                 mission = Mission.objects.get(id=mission_id)
-                mission.status = 'CLOSED'
-                mission.save()
-                messages.success(request, f'La mission #{mission.id} a été clôturée avec succès.')
+                
+                # Gérer différentes actions possibles
+                if action == 'close':
+                    # Clôture de mission
+                    mission.status = 'CLOSED'
+                    mission.save()
+                    messages.success(
+                        request, 
+                        f'La mission #{mission.id} a été clôturée avec succès.',
+                        extra_tags='cloture'  # Ajout du tag pour la notification
+                    )
+                elif action == 'upload_file':
+                    # Traitement de l'upload de fichier
+                    # (à gérer selon votre logique d'upload)
+                    file = request.FILES.get('file')
+                    if file:
+                        # Logique pour sauvegarder le fichier
+                        # Ceci est un exemple, à adapter selon votre modèle
+                        MissionFile.objects.create(
+                            mission=mission,
+                            file=file,
+                            uploaded_by=request.user
+                        )
+                        messages.success(
+                            request, 
+                            f'Le fichier a été ajouté à la mission #{mission.id} avec succès.',
+                            extra_tags='fichier'  # Ajout du tag pour la notification
+                        )
+                    else:
+                        messages.warning(
+                            request, 
+                            'Aucun fichier sélectionné.',
+                            extra_tags='fichier'  # Ajout du tag pour la notification
+                        )
+                
             except Mission.DoesNotExist:
-                messages.error(request, f'Mission #{mission_id} introuvable.')
+                messages.error(
+                    request, 
+                    f'Mission #{mission_id} introuvable.',
+                    extra_tags='cloture'  # Ajout du tag pour la notification
+                )
         
         return redirect('history')
     
@@ -333,11 +371,11 @@ class CustomLoginView(LoginView):
 
 # Déconnexion
 class CustomLogoutView(LogoutView):
-    next_page = reverse_lazy("login")  # Redirige vers la page de connexion après déconnexion
-
     def dispatch(self, request, *args, **kwargs):
-        messages.success(request, "Vous avez été déconnecté.")  # Message de succès
-        return super().dispatch(request, *args, **kwargs)
+        messages.success(request, "Vous avez été déconnecté.")
+        response = super().dispatch(request, *args, **kwargs)
+        return redirect('login')
+    
 
 
 #  class pour mettre à jour les données entrés par l'utilisateur 
@@ -428,7 +466,7 @@ def run_async_task(target, *args, **kwargs):
 # Pour la validation des missions
 class ValidateMissionView(View):
     def post(self, request, *args, **kwargs):
-        if not request.user.has_perm('app_name.can_validate_mission'):
+        if not request.user.has_perm('frais_app.can_validate_mission'):
             raise PermissionDenied
 
         mission_id = request.POST.get('mission_id')
@@ -440,7 +478,7 @@ class ValidateMissionView(View):
         mission.save()
 
         # Préparer l'envoi d'e-mail
-        subject = "Mission validée"
+        subject = f"Demande de validation frais de mission à {mission.location}"
         message = f"La mission #{mission.id} a été validée avec succès."
         notification_email = mission.created_by.email
 
@@ -460,7 +498,7 @@ class ValidateMissionView(View):
 # Pour le refus de la mission
 class RefuseMissionView(View):
     def post(self, request, *args, **kwargs):
-        if not request.user.has_perm('app_name.can_refuse_mission'):
+        if not request.user.has_perm('frais_app.can_refuse_mission'):
             raise PermissionDenied
 
         mission_id = request.POST.get('mission_id')
@@ -479,7 +517,7 @@ class RefuseMissionView(View):
         mission.save()
 
         # Préparer l'envoi d'e-mail
-        subject = "Mission refusée"
+        subject = f"Demande de validation frais de mission à {mission.location}"
         message = f"La mission #{mission.id} a été refusée pour la raison suivante : {refusal_reason}."
         notification_email = mission.created_by.email
 
@@ -1000,5 +1038,4 @@ class UploadMissionFileView(View):
             
         # Rediriger vers la page d'où provient la requête
         return redirect('history')
-    
-    
+
