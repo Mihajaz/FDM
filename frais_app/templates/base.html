@@ -36,6 +36,12 @@
         <i class="fas fa-sign-out-alt"></i>
         <span>Se déconnecter</span>
       </a>
+      {% if user.is_authenticated and perms.frais_app.can_create_technician %}
+      <a href="{% url 'create_technician' %}" class="nav-link" title="Ajouter un technicien">
+        <i class="fas fa-user-plus"></i>
+        <span>Ajouter un technicien</span>
+      </a>
+      {% endif %}
     </div>
   </div>
 

@@ -38,6 +38,11 @@ from django.conf import settings
 import threading
 from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
+from django.db import transaction
+import io
+import pandas as pd
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
 
 
 
@@ -155,15 +160,12 @@ class MissionListView(View):
             'missions': missions,
             'technicians': technicians,
             'active_tab': 'missions',  # Pour le style lorsqu'on clique sur historique ou accueil
-            'new_missions': new_missions ,
+            'new_missions': new_missions,
             'validated_missions': validated_missions,
             'refused_missions': refused_missions,
             'total_missions': total_missions,
-
-            
         }
         return render(request, 'index.html', context)
-        
         
     # stockage des données de la mission dans la base
     def post(self, request, *args, **kwargs):
@@ -193,16 +195,16 @@ class MissionListView(View):
             end_hour=end_hour,
             location=location,
             facturation=facturation,
-            created_by=request.user
+            created_by=request.user,
+            updated_by=request.user  # Ajouter l'utilisateur qui crée comme le premier à mettre à jour
         )
+        
         def send_email_async(subject, message, from_email, recipient_list):
             threading.Thread(
                  target=send_mail,
                  args=(subject, message, from_email, recipient_list),
                  kwargs={'fail_silently': False}
              ).start()
-        
-       
         
         techniciens_ids = request.POST.getlist('techniciens')
         for tech_id in techniciens_ids:
@@ -224,12 +226,11 @@ class MissionListView(View):
         # Envoyer une notification par e-mail de manière asynchrone
         subject = "Nouvelle mission créée"
         message = f"Une nouvelle mission a été créée par {request.user.username}.\n\nDétails : {mission.mission_details}"
-        recipient_list = ['mihajarazafimahazoson@gmail.com']  # Remplacez par l'adresse e-mail souhaitée a qui envoée le mail , normalement DG
+        recipient_list = ['mihajarazafimahazoson@gmail.com']  # Remplacez par l'adresse e-mail souhaitée à qui envoyer le mail, normalement DG
         send_email_async(subject, message, 'mihaja356@gmail.com', recipient_list)
         
         # Ajouter un message de succès
         messages.success(request, "La mission a été créée avec succès!")
-
         
         return redirect('missions')
 
@@ -376,9 +377,9 @@ class CustomLogoutView(LogoutView):
         response = super().dispatch(request, *args, **kwargs)
         return redirect('login')
     
-
-
-#  class pour mettre à jour les données entrés par l'utilisateur 
+    
+    
+# class pour mettre à jour les données entrés par l'utilisateur 
 class EditMissionView(View):
     def post(self, request, mission_id, *args, **kwargs):
         mission = Mission.objects.get(id=mission_id)
@@ -406,6 +407,7 @@ class EditMissionView(View):
         mission.end_hour = end_hour
         mission.location = location
         mission.facturation = facturation
+        mission.updated_by = request.user
         mission.save()
         
         # Mise à jour des techniciens
@@ -1039,3 +1041,131 @@ class UploadMissionFileView(View):
         # Rediriger vers la page d'où provient la requête
         return redirect('history')
 
+
+
+#pour la création d'un technicien
+class CreateTechnicianView(LoginRequiredMixin, TemplateView):
+    template_name = 'create_technician.html'
+    
+    def get(self, request, *args, **kwargs):
+        context = {}
+        
+        # Récupérer les messages de session et les ajouter au contexte
+        if 'single_success' in request.session:
+            context['single_success'] = request.session.pop('single_success')
+        
+        if 'form_errors' in request.session:
+            context['form_errors'] = request.session.pop('form_errors')
+            
+        if 'file_success' in request.session:
+            context['file_success'] = request.session.pop('file_success')
+            
+        if 'file_errors' in request.session:
+            context['file_errors'] = request.session.pop('file_errors')
+            
+        return render(request, self.template_name, context)
+    
+    def post(self, request, *args, **kwargs):
+        form_type = request.POST.get('form_type')
+        
+        if form_type == 'single':
+            # Traitement de l'ajout d'un seul technicien
+            return self._handle_single_technician(request)
+        elif form_type == 'file':
+            # Traitement de l'import par fichier
+            return self._handle_file_import(request)
+        
+        # Si form_type n'est pas reconnu, rediriger vers la page
+        return redirect('create_technician')
+    
+    def _handle_single_technician(self, request):
+        """Gère l'ajout d'un technicien unique"""
+        last_name = request.POST.get('last_name')
+        first_name = request.POST.get('first_name')
+        matricule = request.POST.get('matricule')
+        
+        # Validation des données
+        errors = []
+        if not last_name:
+            errors.append("Le nom est requis")
+        if not first_name:
+            errors.append("Le prénom est requis")
+        
+        if errors:
+            request.session['form_errors'] = errors
+            return redirect('create_technician')
+        
+        # Création du technicien
+        try:
+            Technician.objects.create(
+                last_name=last_name,
+                first_name=first_name,
+                matricule=matricule if matricule else None
+            )
+            request.session['single_success'] = True
+        except Exception as e:
+            errors.append(f"Erreur lors de l'enregistrement: {str(e)}")
+            request.session['form_errors'] = errors
+        
+        return redirect('create_technician')
+    
+    def _handle_file_import(self, request):
+        """Gère l'import de techniciens depuis un fichier"""
+        if 'file' not in request.FILES:
+            request.session['file_errors'] = ["Aucun fichier n'a été soumis"]
+            return redirect('create_technician')
+        
+        file = request.FILES['file']
+        
+        # Vérifier l'extension du fichier
+        if not file.name.endswith(('.xlsx', '.xls', '.csv')):
+            request.session['file_errors'] = ["Format de fichier non pris en charge. Utilisez XLSX, XLS ou CSV."]
+            return redirect('create_technician')
+        
+        try:
+            # Lecture du fichier
+            if file.name.endswith('.csv'):
+                df = pd.read_csv(file)
+            else:
+                df = pd.read_excel(file)
+            
+            # Vérification des colonnes requises
+            required_columns = ['Nom', 'Prénom']
+            if not all(col in df.columns for col in required_columns):
+                request.session['file_errors'] = ["Le fichier doit contenir les colonnes 'Nom' et 'Prénom'"]
+                return redirect('create_technician')
+            
+            # Import des techniciens en une seule transaction
+            technicians_added = self._import_technicians_from_dataframe(df)
+            request.session['file_success'] = f"{technicians_added} technicien(s) ont été importés avec succès."
+            
+        except Exception as e:
+            request.session['file_errors'] = [f"Erreur lors de l'importation du fichier: {str(e)}"]
+        
+        return redirect('create_technician')
+    
+    @transaction.atomic
+    def _import_technicians_from_dataframe(self, df):
+        """Importe les techniciens depuis un DataFrame pandas"""
+        count = 0
+        for _, row in df.iterrows():
+            # Extraire les données du DataFrame
+            last_name = row.get('Nom', '').strip()
+            first_name = row.get('Prénom', '').strip()
+            
+            # Vérifier les valeurs obligatoires
+            if not last_name or not first_name:
+                continue
+            
+            # Gérer le matricule s'il existe
+            matricule = None
+            if 'Matricule' in row and pd.notna(row['Matricule']):
+                matricule = str(row['Matricule']).strip()
+            
+            # Créer le technicien
+            Technician.objects.create(
+                last_name=last_name,
+                first_name=first_name,
+                matricule=matricule
+            )
+            count += 1

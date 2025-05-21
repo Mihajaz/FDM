@@ -162,10 +162,10 @@
               <div class="timeline-icon">
                 <span class="circle-icon">+</span>
               </div>
-                <!-- date de création  -->
+              <!-- date de création  -->
               <div class="timeline-text">
                 <div>
-                  <span class="text-muted small">{{mission.created_at}}</span>
+                  <span class="text-muted small">{{mission.created_at|date:"d/m/Y H:i"}}</span>
                   <p class="mb-0">Demande créée par : {{ mission.created_by.get_full_name }}</p>
                 </div>
               </div>
@@ -173,78 +173,62 @@
             <div class="timeline-line"></div>
           </div>
           
-          <!-- Deuxième étape - Validation -->
-    <div class="timeline-step">
-      <div class="timeline-content">
-        <div class="timeline-icon">
-          <span class="circle-icon"
-          style="background-color: {% if mission.status == 'VALIDATED' %}#28a745{% elif mission.status == 'REFUSED' %}#dc3545{% elif mission.status == 'NEW' %}#4688A3{% elif mission.status == 'CLOSED' %}#6c757d{% else %}#0D6EFD{% endif %};">
-          {% if mission.status == 'REFUSED' %}✗{% elif mission.status == 'VALIDATED' %}✓{% elif mission.status == 'CLOSED' %}✓{% else %}?{% endif %}
-          </span>
-    </div>
-    <div class="timeline-text">
-      <div>
-        <!-- Afficher la date en fonction du statut -->
-        <span class="text-muted small">
-          {% if mission.status == 'VALIDATED' %}
-            {{ mission.validated_at|date:"d/m/Y H:i" }}
-          {% elif mission.status == 'REFUSED' %}
-            {{ mission.refused_at|date:"d/m/Y H:i" }}
-          {% elif mission.status == 'CLOSED' %}
-            {{ mission.closed_at|date:"d/m/Y H:i" }}
-          {% else %}
-            <!-- Vous pouvez laisser vide ou mettre un message d'attente -->
-            En attente
-          {% endif %}
-        </span>
-        <p class="mb-0">
-          {% if mission.status == 'REFUSED' %}Refusé par le Directeur{% elif mission.status == 'VALIDATED' %}Validé par le Directeur{% elif mission.status == 'CLOSED' %}Clôturé{% elif mission.status == 'NEW' %}En attente de validation par le DG{% else %}Statut inconnu{% endif %}
-        </p>
-      </div>
-      {% if mission.status == 'REFUSED' %}
-      <div class="mt-2 p-2">
-        <span class="badge bg-danger">Motif du refus :</span>
-        <p class="mt-1 mb-0">{{ mission.refusal_reason }}</p>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-   <div class="timeline-line"></div>
-    </div> 
-         
-          <!-- Troisième étape - Requiert 
+          <!-- Nouvelle étape - Dernière modification -->
+          {% if mission.updated_by and mission.updated_at|date:"Y-m-d H:i" != mission.created_at|date:"Y-m-d H:i" %}
           <div class="timeline-step">
             <div class="timeline-content">
               <div class="timeline-icon">
-                <span class="circle-icon" style="background-color: #fd7e14;">2</span>
+                <span class="circle-icon" style="background-color: #fd7e14;"><i class="fas fa-pen"></i></span>
               </div>
               <div class="timeline-text">
                 <div>
-                  <span class="text-muted small">03/03/2025 10:15</span>
-                  <p class="mb-0"><span style="color: #fd7e14; font-weight: bold;">Requiert</span> Lucie Pelletier (vous)</p>
+                  <span class="text-muted small">{{mission.updated_at|date:"d/m/Y H:i"}}</span>
+                  <p class="mb-0">Modifiée par : {{ mission.updated_by.get_full_name }}</p>
                 </div>
               </div>
             </div>
             <div class="timeline-line"></div>
           </div>
-           -->
-
-          <!-- Étape finale - Facture 
+          {% endif %}
+          
+          <!-- Étape de Validation/Refus -->
           <div class="timeline-step">
             <div class="timeline-content">
               <div class="timeline-icon">
-                <span class="circle-icon" style="background-color: #28a745;">$</span>
+                <span class="circle-icon"
+                style="background-color: {% if mission.status == 'VALIDATED' %}#28a745{% elif mission.status == 'REFUSED' %}#dc3545{% elif mission.status == 'NEW' %}#4688A3{% elif mission.status == 'CLOSED' %}#6c757d{% else %}#0D6EFD{% endif %};">
+                {% if mission.status == 'REFUSED' %}✗{% elif mission.status == 'VALIDATED' %}✓{% elif mission.status == 'CLOSED' %}✓{% else %}?{% endif %}
+                </span>
               </div>
               <div class="timeline-text">
                 <div>
-                  <span class="text-muted small">05/03/2025 11:30</span>
-                  <p class="mb-0">Facture établie par Service Comptabilité</p>
+                  <!-- Afficher la date en fonction du statut -->
+                  <span class="text-muted small">
+                    {% if mission.status == 'VALIDATED' %}
+                      {{ mission.validated_at|date:"d/m/Y H:i" }}
+                    {% elif mission.status == 'REFUSED' %}
+                      {{ mission.refused_at|date:"d/m/Y H:i" }}
+                    {% elif mission.status == 'CLOSED' %}
+                      {{ mission.closed_at|date:"d/m/Y H:i" }}
+                    {% else %}
+                      <!-- Vous pouvez laisser vide ou mettre un message d'attente -->
+                      En attente
+                    {% endif %}
+                  </span>
+                  <p class="mb-0">
+                    {% if mission.status == 'REFUSED' %}Refusé par le Directeur{% elif mission.status == 'VALIDATED' %}Validé par le Directeur{% elif mission.status == 'CLOSED' %}Clôturé{% elif mission.status == 'NEW' %}En attente de validation par le DG{% else %}Statut inconnu{% endif %}
+                  </p>
                 </div>
+                {% if mission.status == 'REFUSED' %}
+                <div class="mt-2 p-2">
+                  <span class="badge bg-danger">Motif du refus :</span>
+                  <p class="mt-1 mb-0">{{ mission.refusal_reason }}</p>
+                </div>
+                {% endif %}
               </div>
             </div>
+            <div class="timeline-line"></div>
           </div>
-          -->
-
         </div>
       </div>
       

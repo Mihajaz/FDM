@@ -51,6 +51,17 @@ class Mission(models.Model):
         help_text='Utilisateur qui a créé la mission'
     )
     
+    # Nouvel attribut updated_by
+    updated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='missions_updated',
+        verbose_name='Modifié par',
+        help_text='Utilisateur ayant dernièrement modifié la mission'
+    )
+    
     bluedesk_link = models.CharField(
         max_length=300,
         help_text='lien bluedesk',
@@ -105,7 +116,7 @@ class Mission(models.Model):
         help_text='Motif de refus de la mission'
     )
     
-    # Nouveaux champs pour le suivi des dates
+    # Champs pour le suivi des dates
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Date de création',
@@ -129,17 +140,15 @@ class Mission(models.Model):
         help_text='Date et heure de refus de la mission'
     )
     closed_at = models.DateTimeField(
-    null=True,
-    blank=True,
-    verbose_name='Date de clôture',
-    help_text='Date et heure de clôture de la mission'
+        null=True,
+        blank=True,
+        verbose_name='Date de clôture',
+        help_text='Date et heure de clôture de la mission'
     )
-        
-    
     
     # Méthode pour mettre à jour automatiquement les dates de validation/refus
     def save(self, *args, **kwargs):
-    # Si c'est un nouvel objet (pas encore en base)
+        # Si c'est un nouvel objet (pas encore en base)
         if not self.id:
             super().save(*args, **kwargs)
             return
@@ -169,8 +178,8 @@ class Mission(models.Model):
             ("can_edit_mission","Peut modifier une mission"),
             ("can_close_mission","Peut cloturer une mission"),
             ("can_upload_file","Peut uploader un fichier"),
-
-            ]
+            ("can_create_technician","Peut creer un technicien"),
+        ]
         
 #fichier du mission
 class MissionFile(models.Model):
