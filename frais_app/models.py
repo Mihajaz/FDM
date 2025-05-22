@@ -195,6 +195,14 @@ class MissionFile(models.Model):
         default='Pas de description du fichier'
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='mission_files_uploaded',
+        verbose_name='Ajouté par'
+    )
 
     def __str__(self):
         return "Fichier pour mission #{}: {}".format(self.mission.id, self.file_description) 

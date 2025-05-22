@@ -133,6 +133,14 @@
                     <div>
                       <span>{{ file.file.name|slice:"21:" }}</span>
                       <small class="text-muted d-block">{{ file.file_description }}</small>
+                      <small class="text-muted d-block">
+                        Ajouté par :
+                        {% if file.uploaded_by %}
+                          {{ file.uploaded_by.get_full_name|default:file.uploaded_by.username }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </small>
                     </div>
                     <div>
                       <small class="text-muted me-3">{{ file.uploaded_at|date:"d/m/Y H:i" }}</small>

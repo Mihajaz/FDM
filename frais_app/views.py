@@ -43,7 +43,7 @@ import io
 import pandas as pd
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 #barre de recherche reutilisable
@@ -138,7 +138,8 @@ class PaginationUtils:
         return paginated_queryset   
     
 #liste des missions
-class MissionListView(View):
+
+class MissionListView(LoginRequiredMixin,View):
     def get(self, request, *args, **kwargs):
         all_missions = Mission.objects.exclude(status__in=['VALIDATED', 'CLOSED']).order_by('-id')
         search_query = request.GET.get('search', '')
@@ -1032,7 +1033,8 @@ class UploadMissionFileView(View):
                 MissionFile.objects.create(
                     mission=mission,
                     file=file,
-                    file_description=description
+                    file_description=description,
+                    uploaded_by=request.user  # Enregistre l'utilisateur qui a uploadé
                 )
             messages.success(request, "{} fichier(s) ajouté(s) à la mission #{}".format(len(files), mission_id))
         else:
