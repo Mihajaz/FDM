@@ -181,6 +181,7 @@ class Mission(models.Model):
             ("can_create_technician","Peut creer un technicien"),
         ]
         
+        
 #fichier du mission
 class MissionFile(models.Model):
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE, related_name='files')
