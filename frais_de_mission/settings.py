@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-u47xh_r*bxd96navoo86o%_d5_f1902a7kt*(wdk)p*pnsxj5*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Configuration pour les fichiers média
 MEDIA_URL = '/media/'
@@ -87,11 +87,11 @@ WSGI_APPLICATION = 'frais_de_mission.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # ou 'django.db.backends.postgresql_psycopg2'
-        'NAME': 'frais_de_mission',  # Nom de la base de données
-        'USER': 'postgres',          # Utilisateur PostgreSQL (par défaut)
-        'PASSWORD': 'postgres',      # Mot de passe PostgreSQL
-        'HOST': 'db',               # Nom du service dans docker-compose.yml
-        'PORT': '5432',             # Port PostgreSQL par défaut
+        'NAME': os.getenv('POSTGRES_DB'),  # Nom de la base de données
+        'USER': os.getenv('POSTGRES_USER'),          # Utilisateur PostgreSQL (par défaut)
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),      # Mot de passe PostgreSQL
+        'HOST': os.getenv('POSTGRES_HOST'),               # Nom du service dans docker-compose.yml
+        'PORT': os.getenv('POSTGRES_PORT'),             # Port PostgreSQL par défaut
     }
 }
 
@@ -137,7 +137,7 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Pour collectstatic
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'frais_app', 'static'),
 ]
 
 STORAGES = {
@@ -168,4 +168,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mihaja356@gmail.com'
 EMAIL_HOST_PASSWORD = 'phgj lblz hqyc hval'
+
+# Use for security
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
