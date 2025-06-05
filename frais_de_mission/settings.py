@@ -24,9 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-u47xh_r*bxd96navoo86o%_d5_f1902a7kt*(wdk)p*pnsxj5*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mission.malagasy.mg']
 
 # Configuration pour les fichiers média
 MEDIA_URL = '/media/'
@@ -47,15 +47,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'frais_app',
-    
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'frais_app.middleware.log_middleware.RequestLogMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -86,11 +87,11 @@ WSGI_APPLICATION = 'frais_de_mission.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # ou 'django.db.backends.postgresql_psycopg2'
-        'NAME': 'frais_de_mission',  # Nom de la base de données
-        'USER': 'postgres',          # Utilisateur PostgreSQL (par défaut)
-        'PASSWORD': 'postgres',      # Mot de passe PostgreSQL
-        'HOST': 'db',               # Nom du service dans docker-compose.yml
-        'PORT': '5432',             # Port PostgreSQL par défaut
+        'NAME': os.getenv('POSTGRES_DB'),  # Nom de la base de données
+        'USER': os.getenv('POSTGRES_USER'),          # Utilisateur PostgreSQL (par défaut)
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),      # Mot de passe PostgreSQL
+        'HOST': os.getenv('POSTGRES_HOST'),               # Nom du service dans docker-compose.yml
+        'PORT': os.getenv('POSTGRES_PORT'),             # Port PostgreSQL par défaut
     }
 }
 
@@ -131,7 +132,29 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # Pour collectstatic
+
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'frais_app', 'static'),
+]
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "OPTIONS": {
+            "location": os.path.join(BASE_DIR, "media"),
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+
+LOGIN_URL = '/login/'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -145,4 +168,54 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mihaja356@gmail.com'
 EMAIL_HOST_PASSWORD = 'phgj lblz hqyc hval'
+
+# Use for security
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Use for personalized logging
+"""
+Le format contient :
+    {asctime} : la date et l'heure du log
+    {levelname} : niveau du message (INFO, ERROR, etc.)
+    {name} : nom du logger (django.request)
+    {client_ip} : l'adresse IP du client (on va la rajouter avec notre middleware)
+    {user} : nom d'utilisateur (ou "Anonymous")
+    {message} : le message du log (ex. : "GET /dashboard/ 200")
+"""
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'detailed': {
+            'format': '[{asctime}] {levelname} {name} | IP: {client_ip} | User: {user} | {message}',
+            'style': '{',
+        },
+    },
+
+    'filters': {
+        'add_request_info': {
+            '()': 'frais_app.middleware.logging_filters.ClientInfoFilter',
+        },
+    },
+
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
+            'formatter': 'detailed',
+            'filters': ['add_request_info'],  # 🔐 Ajoute ce filtre ici
+        },
+    },
+
+    'loggers': {
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    }
+}
 

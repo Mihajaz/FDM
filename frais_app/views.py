@@ -41,9 +41,8 @@ from django.http import HttpResponseRedirect
 from django.db import transaction
 import io
 import pandas as pd
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import logout
 
 
 #barre de recherche reutilisable
@@ -139,7 +138,7 @@ class PaginationUtils:
     
 #liste des missions
 
-class MissionListView(LoginRequiredMixin,View):
+class MissionListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         all_missions = Mission.objects.exclude(status__in=['VALIDATED', 'CLOSED']).order_by('-id')
         search_query = request.GET.get('search', '')
@@ -374,8 +373,9 @@ class CustomLoginView(LoginView):
 # Déconnexion
 class CustomLogoutView(LogoutView):
     def dispatch(self, request, *args, **kwargs):
+        logout(request)
         messages.success(request, "Vous avez été déconnecté.")
-        response = super().dispatch(request, *args, **kwargs)
+        super().dispatch(request, *args, **kwargs)
         return redirect('login')
     
     

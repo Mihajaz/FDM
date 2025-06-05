@@ -1,0 +1,6 @@
+.venv
+staticfiles
+__pycache__
+templates_c
+*.pyc
+media
