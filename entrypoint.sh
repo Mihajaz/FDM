@@ -10,6 +10,12 @@ done
 
 echo "✅  PostgreSQL est prêt !"
 
+echo "⚙️  Création des logs..."
+mkdir -p /app/logs
+touch logs/django.log
+chmod 664 logs/django.log
+echo "✅  Tous les services sont prêts!"
+
 echo "⚙️  Exécution des migrations..."
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput

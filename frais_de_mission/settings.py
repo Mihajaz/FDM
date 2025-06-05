@@ -47,10 +47,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'frais_app',
-    
 ]
 
 MIDDLEWARE = [
+    'frais_app.middleware.log_middleware.RequestLogMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -172,4 +172,50 @@ EMAIL_HOST_PASSWORD = 'phgj lblz hqyc hval'
 # Use for security
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Use for personalized logging
+"""
+Le format contient :
+    {asctime} : la date et l'heure du log
+    {levelname} : niveau du message (INFO, ERROR, etc.)
+    {name} : nom du logger (django.request)
+    {client_ip} : l'adresse IP du client (on va la rajouter avec notre middleware)
+    {user} : nom d'utilisateur (ou "Anonymous")
+    {message} : le message du log (ex. : "GET /dashboard/ 200")
+"""
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'detailed': {
+            'format': '[{asctime}] {levelname} {name} | IP: {client_ip} | User: {user} | {message}',
+            'style': '{',
+        },
+    },
+
+    'filters': {
+        'add_request_info': {
+            '()': 'frais_app.middleware.logging_filters.ClientInfoFilter',
+        },
+    },
+
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django.log'),
+            'formatter': 'detailed',
+            'filters': ['add_request_info'],  # 🔐 Ajoute ce filtre ici
+        },
+    },
+
+    'loggers': {
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    }
+}
 
