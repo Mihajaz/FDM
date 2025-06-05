@@ -41,5 +41,5 @@ COPY . .
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Start the Django server with Gunicorn
-CMD ["gunicorn", "frais_de_mission.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "8"]
+CMD ["gunicorn", "frais_de_mission.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "6"]
 

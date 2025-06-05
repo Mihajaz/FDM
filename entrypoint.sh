@@ -16,12 +16,13 @@ touch logs/django.log
 chmod 664 logs/django.log
 echo "✅  Tous les services sont prêts!"
 
+echo "📦  Collecte des fichiers statiques..."
+python manage.py collectstatic --noinput
+
 echo "⚙️  Exécution des migrations..."
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 
-echo "📦  Collecte des fichiers statiques..."
-python manage.py collectstatic --noinput
 
 # Exécute la commande CMD
 exec "$@"
