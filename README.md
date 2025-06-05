@@ -1,31 +1,86 @@
+# Application de Gestion des Frais de Mission (FDM)
+
+Application web pour la gestion des frais de mission, développée avec Django.
+
+## Fonctionnalités
+
+- Gestion des missions
+- Suivi des frais
+- Génération de rapports
+- Interface utilisateur intuitive
+
+## Prérequis
+
+- Docker et Docker Compose
+- Git
+
+## Installation
+
+1. Clonez le dépôt :
+   ```bash
+   git clone <url-du-repo>
+   cd FDM
+   ```
+
+2. Créez un fichier `.env` à la racine du projet avec les variables suivantes :
+   ```
+   POSTGRES_DB=frais_mission
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=postgres
+   POSTGRES_HOST=db
+   POSTGRES_PORT=5432
+   ```
+
+## Utilisation
+
+### Environnement de développement
+
+Pour lancer l'application en mode développement :
+
 ```bash
-git clone [](https://github.com/Mihajaz/FDM)
-cd FDM
-docker compose up --build
+docker-compose up -d
 ```
 
-Pour lancer l'application sur un serveur de développement, utiliser la commande ci-dessous :
+L'application sera accessible à l'adresse http://localhost:8000
+
+### Environnement de production
+
+Pour lancer l'application en mode production avec NGINX :
 
 ```bash
-docker compose build
-docker compose up
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-Pour lancer l'application sur un serveur de production, utiliser la commande ci-dessous :
+L'application sera accessible à l'adresse http://localhost
 
-```bash
-docker compose -f docker-compose.prod.yml --env-file .env up --build
-```
+## Architecture
 
-Au niveau production, on n'envoie pas tous les codes dans le volumes pour avoir une **isolation** et **cohérence**
+L'application est composée de plusieurs services Docker :
 
-```
-volumes:
-  - .:/app
-```
+- **web** : Application Django avec Gunicorn
+- **db** : Base de données PostgreSQL
+- **nginx** : Serveur web NGINX (en production)
 
-* Avec `- .:/app`, tu relies directement le dossier du code source local au dossier `/app` dans le conteneur.
-* Ça marche super en développement (tu modifies ton code local, et les changements sont visibles instantanément dans le conteneur).
-* **Mais en production, tu veux que ton conteneur soit immuable et reproductible :**
+## Configuration NGINX
 
-  Le conteneur doit contenir exactement ce qui est nécessaire, sans dépendre d’un dossier local externe.
+La configuration NGINX se trouve dans le dossier `nginx/`. Elle est utilisée en production pour :
+
+- Servir les fichiers statiques et médias
+- Faire office de proxy inverse vers l'application Django
+- Gérer les connexions HTTPS (à configurer)
+
+Pour plus d'informations, consultez le [README.md](nginx/README.md) dans le dossier nginx.
+
+## Développement
+
+### Structure du projet
+
+- `frais_app/` : Application Django principale
+- `frais_de_mission/` : Configuration du projet Django
+- `nginx/` : Configuration NGINX pour la production
+- `docker-compose.yml` : Configuration Docker pour le développement
+- `docker-compose.prod.yml` : Configuration Docker pour la production
+
+## Licence
+
+[Insérer les informations de licence ici]

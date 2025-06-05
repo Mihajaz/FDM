@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-u47xh_r*bxd96navoo86o%_d5_f1902a7kt*(wdk)p*pnsxj5*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'mission.malagasy.mg']
 
 # Configuration pour les fichiers média
 MEDIA_URL = '/media/'
